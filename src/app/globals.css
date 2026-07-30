@@ -4,8 +4,89 @@
 
 :root {
   color-scheme: dark;
+  --font-display: "Anton", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
+/* Base da identidade Urban Burger. As telas internas (cozinha/caixa) usam as
+   utilitárias neutras diretamente; o público herda estes defaults. */
 body {
-  @apply bg-neutral-950 text-neutral-100 antialiased;
+  @apply bg-urban-bg text-urban-light antialiased;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.85);
+  color: #1c1c1c;
+}
+
+/* Scrollbar street */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #1c1c1c;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 9999px;
+    border: 2px solid #1c1c1c;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #f97316;
+  }
+}
+
+@layer components {
+  /* Título display com leve pegada de grafite */
+  .display-title {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  /* Cartão de vidro leve (glassmorphism sutil) */
+  .glass {
+    background: rgba(36, 36, 36, 0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  /* Etiqueta pill de seção */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-urban-line
+      bg-urban-surface/70 px-4 py-1.5 text-xs font-semibold uppercase
+      tracking-[0.2em] text-urban-muted;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* Contorno "spray" no texto de destaque */
+  .text-stroke {
+    -webkit-text-stroke: 2px rgba(248, 250, 252, 0.9);
+    color: transparent;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
