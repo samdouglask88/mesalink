@@ -15,7 +15,7 @@ export default async function CaixaPage() {
     return <SemPermissao papelEsperado="caixa" papelAtual={r.papel} />;
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-6">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <CaixaDashboard nome={r.nome} />
     </main>
   );

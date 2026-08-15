@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ChefHat, Check, Flame, Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatHora } from "@/lib/format";
 import StaffHeader from "@/components/staff/StaffHeader";
@@ -18,10 +19,15 @@ type PedidoCozinha = {
 };
 
 // A cozinha só lida com estas colunas — 'entregue' nunca aparece aqui.
-const COLUNAS: { status: StatusPedido; titulo: string }[] = [
-  { status: "recebido", titulo: "Recebidos" },
-  { status: "preparo", titulo: "Em preparo" },
-  { status: "pronto", titulo: "Prontos" },
+const COLUNAS: {
+  status: StatusPedido;
+  titulo: string;
+  icone: typeof Inbox;
+  cor: string;
+}[] = [
+  { status: "recebido", titulo: "Recebidos", icone: Inbox, cor: "text-sky-400" },
+  { status: "preparo", titulo: "Em preparo", icone: Flame, cor: "text-urban-primary" },
+  { status: "pronto", titulo: "Prontos", icone: Check, cor: "text-emerald-400" },
 ];
 
 // Próximo status ao clicar em "avançar".
@@ -95,56 +101,63 @@ export default function CozinhaDashboard({ nome }: { nome: string }) {
       <StaffHeader titulo="Cozinha" nome={nome} />
 
       {erro && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {erro}
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         {COLUNAS.map((coluna) => {
           const daColuna = pedidos.filter((p) => p.status === coluna.status);
+          const Icone = coluna.icone;
           return (
-            <div key={coluna.status} className="space-y-3">
-              <h2 className="flex items-center justify-between text-sm font-semibold uppercase tracking-wide text-neutral-400">
-                {coluna.titulo}
-                <span className="rounded-full bg-neutral-800 px-2 py-0.5 text-xs tabular-nums">
+            <section key={coluna.status} className="flex flex-col gap-3">
+              <header className="flex items-center justify-between rounded-2xl border border-urban-line bg-urban-surface px-4 py-3">
+                <h2 className="flex items-center gap-2 font-display text-lg uppercase text-urban-light">
+                  <Icone className={`h-5 w-5 ${coluna.cor}`} />
+                  {coluna.titulo}
+                </h2>
+                <span className="grid h-7 min-w-7 place-items-center rounded-full bg-urban-elevated px-2 text-sm font-bold tabular-nums text-urban-light">
                   {daColuna.length}
                 </span>
-              </h2>
+              </header>
 
               {daColuna.length === 0 && (
-                <p className="rounded-lg border border-dashed border-neutral-800 px-3 py-6 text-center text-xs text-neutral-600">
-                  vazio
+                <p className="rounded-2xl border border-dashed border-urban-line px-3 py-10 text-center text-sm text-urban-gray">
+                  Nada por aqui
                 </p>
               )}
 
               {daColuna.map((pedido) => (
                 <article
                   key={pedido.id}
-                  className="rounded-xl border border-neutral-800 bg-neutral-900 p-4"
+                  className="rounded-3xl border border-urban-line bg-urban-surface p-5 shadow-card transition-all hover:border-urban-primary/40 hover:shadow-card-hover"
                 >
-                  <p className="mb-2 text-xs text-neutral-500">
+                  <p className="mb-3 flex items-center gap-1.5 text-xs font-medium text-urban-muted">
+                    <ChefHat className="h-3.5 w-3.5" />
                     {formatHora(pedido.created_at)}
                   </p>
-                  <ul className="mb-3 space-y-1 text-sm">
+                  <ul className="mb-4 space-y-2">
                     {pedido.itens_pedido.map((it, idx) => (
-                      <li key={idx} className="flex gap-2">
-                        <span className="font-semibold text-brand-400">
-                          {it.quantidade}×
+                      <li key={idx} className="flex items-baseline gap-2.5">
+                        <span className="grid h-6 min-w-6 shrink-0 place-items-center rounded-lg bg-urban-primary px-1.5 text-xs font-bold tabular-nums text-urban-bg">
+                          {it.quantidade}
                         </span>
-                        <span>{it.itens_cardapio?.nome ?? "Item"}</span>
+                        <span className="text-urban-light">
+                          {it.itens_cardapio?.nome ?? "Item"}
+                        </span>
                       </li>
                     ))}
                   </ul>
                   <button
                     onClick={() => avancar(pedido.id, pedido.status)}
-                    className="w-full rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-brand-400"
+                    className="w-full rounded-full bg-urban-primary px-4 py-2.5 text-sm font-bold text-urban-bg transition-all hover:bg-urban-primary-600 active:scale-[0.98]"
                   >
                     {pedido.status !== "entregue" && PROXIMO[pedido.status].label}
                   </button>
                 </article>
               ))}
-            </div>
+            </section>
           );
         })}
       </div>

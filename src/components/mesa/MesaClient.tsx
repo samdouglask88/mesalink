@@ -15,6 +15,7 @@ import type {
   ItemCardapio,
   Pedido,
 } from "@/lib/database.types";
+import { Logo } from "@/components/ui/Logo";
 import Cardapio from "./Cardapio";
 import Carrinho from "./Carrinho";
 import PedidosAoVivo from "./PedidosAoVivo";
@@ -151,16 +152,21 @@ export default function MesaClient({
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 pb-40 pt-6">
-      <header className="mb-6">
-        <p className="text-sm text-brand-400">🍔 MesaLink</p>
-        <h1 className="text-2xl font-bold">
-          {mesaNumero != null ? `Mesa ${mesaNumero}` : "Sua comanda"}
-        </h1>
+    <main className="mx-auto max-w-2xl px-4 pb-44 pt-8">
+      <header className="mb-8 flex items-center gap-4 border-b border-urban-line pb-6">
+        <Logo iconOnly className="h-10 w-10 shrink-0" />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-urban-muted">
+            Urban Burger
+          </p>
+          <h1 className="font-display text-4xl uppercase leading-none text-urban-light">
+            {mesaNumero != null ? `Mesa ${mesaNumero}` : "Sua comanda"}
+          </h1>
+        </div>
       </header>
 
       {erro && (
-        <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+        <div className="mb-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {erro}
         </div>
       )}
@@ -177,7 +183,7 @@ export default function MesaClient({
         <button
           onClick={pedirFechamento}
           disabled={solicitando}
-          className="mb-6 w-full rounded-xl bg-brand-500 px-4 py-3 font-semibold text-neutral-950 transition hover:bg-brand-400 disabled:opacity-60"
+          className="mb-8 w-full rounded-full border border-urban-line bg-urban-surface px-4 py-3.5 font-bold text-urban-light transition-all hover:border-urban-primary hover:text-urban-primary active:scale-[0.98] disabled:opacity-60"
         >
           {solicitando ? "Solicitando…" : "Solicitar fechamento da conta"}
         </button>
@@ -201,7 +207,7 @@ export default function MesaClient({
           />
         </>
       ) : (
-        <p className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-400">
+        <p className="rounded-3xl border border-urban-line bg-urban-surface px-5 py-4 text-sm text-urban-muted">
           Esta comanda não está mais aberta para novos pedidos.
         </p>
       )}

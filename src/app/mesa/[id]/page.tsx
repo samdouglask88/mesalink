@@ -3,8 +3,11 @@
 // `x-comanda-token` — é assim que a RLS libera a leitura da comanda e do
 // cardápio. O fetch inicial é feito no servidor (SSR); o realtime e o carrinho
 // ficam no client component MesaClient.
+import { QrCode } from "lucide-react";
 import { createComandaServerClient } from "@/lib/supabase/server";
 import MesaClient from "@/components/mesa/MesaClient";
+import { Logo } from "@/components/ui/Logo";
+import { GraffitiBackground } from "@/components/landing/GraffitiBackground";
 
 export const dynamic = "force-dynamic";
 
@@ -55,10 +58,18 @@ export default async function MesaPage({
 
 function Aviso({ titulo, texto }: { titulo: string; texto: string }) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-3 px-6 text-center">
-      <div className="text-4xl">🍔</div>
-      <h1 className="text-xl font-semibold">{titulo}</h1>
-      <p className="text-neutral-400">{texto}</p>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+      <GraffitiBackground />
+      <div className="w-full max-w-sm rounded-4xl border border-urban-line bg-urban-surface p-8 text-center shadow-card">
+        <Logo className="mx-auto mb-6" />
+        <span className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-urban-elevated">
+          <QrCode className="h-8 w-8 text-urban-primary" />
+        </span>
+        <h1 className="font-display text-3xl uppercase leading-none text-urban-light">
+          {titulo}
+        </h1>
+        <p className="mt-3 text-sm text-urban-muted">{texto}</p>
+      </div>
     </main>
   );
 }

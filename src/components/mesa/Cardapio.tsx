@@ -1,5 +1,6 @@
 "use client";
 
+import { Minus, Plus } from "lucide-react";
 import { formatBRL } from "@/lib/format";
 import type { ItemCardapio } from "@/lib/database.types";
 
@@ -24,38 +25,41 @@ function agrupar(itens: ItemCardapio[]) {
 export default function Cardapio({ itens, carrinho, onAlterar }: Props) {
   if (itens.length === 0) {
     return (
-      <p className="text-sm text-neutral-500">
+      <p className="rounded-2xl border border-dashed border-urban-line px-4 py-10 text-center text-sm text-urban-gray">
         Nenhum item disponível no momento.
       </p>
     );
   }
 
   return (
-    <section className="space-y-6">
-      <h2 className="text-lg font-semibold">Cardápio</h2>
+    <section className="space-y-8">
+      <h2 className="font-display text-2xl uppercase text-urban-light">
+        Cardápio
+      </h2>
+
       {agrupar(itens).map(([categoria, lista]) => (
-        <div key={categoria} className="space-y-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+        <div key={categoria} className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-urban-primary">
             {categoria}
           </h3>
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {lista.map((item) => {
               const qtd = carrinho[item.id] ?? 0;
               return (
                 <li
                   key={item.id}
-                  className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3"
+                  className="flex items-center gap-4 rounded-3xl border border-urban-line bg-urban-surface px-5 py-4 transition-colors hover:border-urban-primary/40"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium">{item.nome}</p>
+                    <p className="font-semibold text-urban-light">{item.nome}</p>
                     {item.descricao && (
-                      <p className="truncate text-sm text-neutral-400">
+                      <p className="mt-0.5 truncate text-sm text-urban-muted">
                         {item.descricao}
                       </p>
                     )}
                     {/* Só exibe o preço unitário (dado do backend). Nenhum
                         subtotal é calculado no frontend. */}
-                    <p className="mt-0.5 text-sm text-brand-400">
+                    <p className="mt-1 font-display text-lg text-urban-primary">
                       {formatBRL(item.preco)}
                     </p>
                   </div>
@@ -63,15 +67,26 @@ export default function Cardapio({ itens, carrinho, onAlterar }: Props) {
                   {qtd === 0 ? (
                     <button
                       onClick={() => onAlterar(item.id, 1)}
-                      className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-neutral-950 transition hover:bg-brand-400"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-urban-primary px-4 py-2 text-sm font-bold text-urban-bg transition-all hover:bg-urban-primary-600 active:scale-95"
                     >
-                      Adicionar
+                      <Plus className="h-4 w-4" />
+                      Add
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <QtdBtn onClick={() => onAlterar(item.id, -1)} label="−" />
-                      <span className="w-5 text-center tabular-nums">{qtd}</span>
-                      <QtdBtn onClick={() => onAlterar(item.id, 1)} label="+" />
+                    <div className="inline-flex shrink-0 items-center gap-1 rounded-full border border-urban-line bg-urban-bg p-1">
+                      <QtdBtn onClick={() => onAlterar(item.id, -1)} label="Diminuir">
+                        <Minus className="h-4 w-4" />
+                      </QtdBtn>
+                      <span className="min-w-6 text-center font-semibold tabular-nums text-urban-light">
+                        {qtd}
+                      </span>
+                      <QtdBtn
+                        onClick={() => onAlterar(item.id, 1)}
+                        label="Aumentar"
+                        destaque
+                      >
+                        <Plus className="h-4 w-4" />
+                      </QtdBtn>
                     </div>
                   )}
                 </li>
@@ -84,13 +99,28 @@ export default function Cardapio({ itens, carrinho, onAlterar }: Props) {
   );
 }
 
-function QtdBtn({ onClick, label }: { onClick: () => void; label: string }) {
+function QtdBtn({
+  onClick,
+  label,
+  children,
+  destaque = false,
+}: {
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+  destaque?: boolean;
+}) {
   return (
     <button
       onClick={onClick}
-      className="h-8 w-8 rounded-lg border border-neutral-700 text-lg leading-none transition hover:border-brand-500"
+      aria-label={label}
+      className={
+        destaque
+          ? "grid h-8 w-8 place-items-center rounded-full bg-urban-primary text-urban-bg transition-colors hover:bg-urban-primary-600 active:scale-90"
+          : "grid h-8 w-8 place-items-center rounded-full text-urban-light transition-colors hover:bg-urban-elevated active:scale-90"
+      }
     >
-      {label}
+      {children}
     </button>
   );
 }

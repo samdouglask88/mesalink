@@ -31,10 +31,10 @@ describe("Cardapio", () => {
     expect(screen.getByText("acompanhamentos")).toBeInTheDocument();
   });
 
-  it("mostra 'Adicionar' quando o item não está no carrinho e dispara onAlterar(+1)", () => {
+  it("mostra o botão de adicionar quando o item não está no carrinho e dispara onAlterar(+1)", () => {
     const onAlterar = vi.fn();
     render(<Cardapio itens={[BURGER]} carrinho={{}} onAlterar={onAlterar} />);
-    fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    fireEvent.click(screen.getByRole("button", { name: /add/i }));
     expect(onAlterar).toHaveBeenCalledWith("i1", 1);
   });
 
@@ -43,10 +43,10 @@ describe("Cardapio", () => {
     render(<Cardapio itens={[BURGER]} carrinho={{ i1: 2 }} onAlterar={onAlterar} />);
     expect(screen.getByText("2")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "+" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aumentar" }));
     expect(onAlterar).toHaveBeenCalledWith("i1", 1);
 
-    fireEvent.click(screen.getByRole("button", { name: "−" }));
+    fireEvent.click(screen.getByRole("button", { name: "Diminuir" }));
     expect(onAlterar).toHaveBeenCalledWith("i1", -1);
   });
 
