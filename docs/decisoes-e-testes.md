@@ -80,12 +80,14 @@ precisam de backend. Cobrem:
   agrupamento por categoria, botões +/- e "enviar pedido", estado vazio e
   `enviando`.
 
-Estado atual: **33 testes, todos passando.**
+Estado atual: **89 testes, todos passando.**
 
 ### Integração — `npm run test:integration` (precisa do backend)
 
 Batem no backend local de verdade (PostgREST + Edge Functions) exercitando o
-**mesmo código do app** (client de comanda + `src/lib/edge.ts`). Cobrem:
+**mesmo código do app** (clients de comanda/staff + `src/lib/edge.ts`).
+
+`tests/integration/cliente.test.ts` — lado do cliente (mesa), na comanda do seed:
 
 - leitura via RLS: só cardápio disponível; enxerga a própria comanda pelo token;
   **não** enxerga com token errado;
@@ -95,8 +97,39 @@ Batem no backend local de verdade (PostgREST + Edge Functions) exercitando o
 - `solicitar-fechamento`: cria o fechamento `solicitado`, o cliente passa a
   vê-lo e novos pedidos são recusados (`COMANDA_NAO_ABERTA`).
 
+`tests/integration/staff.test.ts` — lado do staff, em mesa/comanda próprias
+(mesa 9501), para não depender da ordem de execução nem do estado da comanda do
+seed:
+
+- **cozinha**: autentica pelo Supabase Auth e só enxerga a própria linha em
+  `staff`; lê a fila de pedidos com os itens (mesma query do `CozinhaDashboard`);
+  avança `recebido → preparo → pronto → entregue`; o entregue sai da fila;
+  é recusada ao alterar coluna que não seja `status` — o trigger
+  `pedidos_cozinha_somente_status` responde `42501 COZINHA_SO_ALTERA_STATUS`;
+- **caixa**: lê a conta pendente com o número da mesa (mesma query do
+  `CaixaDashboard`); avisa o garçom (`avisado`); fecha a conta pela Edge Function
+  `fechar-conta` com forma de pagamento e **total vindo do banco**; a comanda
+  fica `fechada` e a mesa `livre`; fechar de novo é recusado
+  (`FECHAMENTO_JA_FECHADO`) e pedido novo na comanda fechada também
+  (`COMANDA_NAO_ABERTA`);
+- **isolamento de papel**: cozinha não enxerga `fechamentos`/`comandas`/`mesas`,
+  seu UPDATE em `fechamentos` não afeta linha nenhuma e a Edge Function a recusa
+  com `SEM_PERMISSAO`; o UPDATE do caixa em `pedidos` também não afeta linha
+  nenhuma (confirmado lendo pelo papel que *pode* ler);
+- o total do fechamento soma **só os pedidos entregues** — há um pedido deixado
+  em `recebido` de propósito para provar isso.
+
 Eles se **auto-ignoram** (`describe.skipIf`) quando `INTEGRATION` não é `1`, para
 não quebrar CI sem backend.
+
+> O `seed.sql` do backend **não cria staff** (nenhum usuário em `auth.users`,
+> nenhuma linha em `public.staff`), então não há credencial pronta para
+> reaproveitar: `tests/integration/helpers.ts` provisiona os usuários de
+> cozinha/caixa pelo Auth admin — como os testes de Edge Function do
+> MesaLink-API já fazem — e entra por `signInWithPassword`, igual ao app. Por
+> isso `staff.test.ts` exige também a `SUPABASE_SERVICE_ROLE_KEY` (usada só para
+> montar fixture, nunca para afirmar permissão). Se o backend passar a semear
+> staff com credencial conhecida, esse helper pode virar só o login.
 
 **Como rodar** (precisa de Docker Desktop aberto):
 
@@ -108,11 +141,14 @@ npm run test:int:full
 Ou, com o stack já de pé e as chaves em mãos:
 
 ```powershell
-$env:INTEGRATION="1"; $env:SUPABASE_URL="http://127.0.0.1:54321"; $env:SUPABASE_ANON_KEY="<anon>"
+$env:INTEGRATION="1"; $env:SUPABASE_URL="http://127.0.0.1:54321"
+$env:SUPABASE_ANON_KEY="<anon>"; $env:SUPABASE_SERVICE_ROLE_KEY="<service_role>"
 npm run test:integration
 ```
 
+(As chaves saem de `npx supabase status -o env`, no `MesaLink-API`.)
+
 > Observação honesta: os testes de integração **ainda não foram executados** de
-> ponta a ponta neste ambiente porque o Docker Desktop não estava rodando (sem
-> daemon, sem `supabase start`). Eles estão escritos e auto-ignoram sem o
-> backend; rode `npm run test:int:full` com o Docker aberto para executá-los.
+> ponta a ponta neste ambiente (nem os do cliente, nem os do staff). Eles estão
+> escritos, passam no `tsc` e auto-ignoram sem o backend; rode
+> `npm run test:int:full` com o Docker aberto para executá-los.

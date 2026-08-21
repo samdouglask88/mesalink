@@ -22,9 +22,13 @@ $map = @{}
 foreach ($line in $status) {
   if ($line -match '^\s*([A-Z_]+)="?([^"]*)"?\s*$') { $map[$matches[1]] = $matches[2] }
 }
-$apiUrl  = $map["API_URL"]
-$anonKey = $map["ANON_KEY"]
+$apiUrl     = $map["API_URL"]
+$anonKey    = $map["ANON_KEY"]
+# service_role: usada SÓ para montar fixture dos testes de staff (provisionar os
+# usuários de cozinha/caixa no Auth, já que o seed.sql não cria staff).
+$serviceKey = $map["SERVICE_ROLE_KEY"]
 if (-not $anonKey) { throw "Não consegui ler as chaves do 'supabase status'." }
+if (-not $serviceKey) { throw "Não consegui ler a SERVICE_ROLE_KEY do 'supabase status'." }
 
 Write-Host "==> supabase db reset (reaplica migrations + seed)..." -ForegroundColor Cyan
 npx --yes supabase db reset
@@ -48,9 +52,10 @@ try {
 
   # Roda os testes de integração do frontend.
   Set-Location $frontDir
-  $env:INTEGRATION        = "1"
-  $env:SUPABASE_URL       = $apiUrl
-  $env:SUPABASE_ANON_KEY  = $anonKey
+  $env:INTEGRATION                = "1"
+  $env:SUPABASE_URL               = $apiUrl
+  $env:SUPABASE_ANON_KEY          = $anonKey
+  $env:SUPABASE_SERVICE_ROLE_KEY  = $serviceKey
   Write-Host "==> npm run test:integration..." -ForegroundColor Cyan
   npm run test:integration
 }
