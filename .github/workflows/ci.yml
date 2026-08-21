@@ -1,0 +1,59 @@
+# Gate do frontend: typecheck + lint + testes unitarios.
+#
+# NAO ha job de integracao aqui: tests/integration/** exige Supabase local
+# (PostgREST + Edge Functions) e se auto-ignora sem INTEGRATION=1
+# (tests/integration/helpers.ts + describe.skipIf). `npm run test` usa
+# vitest.config.ts, cujo include e apenas src/**/*.test.{ts,tsx}.
+#
+# Nenhum segredo e necessario: typecheck, lint e testes unitarios passam sem
+# NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+# Menor privilegio: o workflow so le o codigo.
+permissions:
+  contents: read
+
+# Um push novo no mesmo ref cancela a execucao anterior.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: typecheck, lint, testes unitarios
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      # Sem telemetria do Next no CI (rede desnecessaria no passo de lint).
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # >=22 e o requisito mais estrito das deps (@supabase/supabase-js);
+          # Next 14.2 pede >=18.17.
+          node-version: '22.x'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Instalar dependencias
+        # `ci` (nao `install`): respeita o package-lock.json v3 e nao o reescreve.
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes unitarios
+        run: npm run test
